@@ -1,0 +1,339 @@
+<title>Denri Africa — Sales Performance Dashboard</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
+
+<div class="page">
+  <div id="loading" class="loading">Loading report…</div>
+  <div id="error" class="error" hidden></div>
+
+  <main id="report" hidden>
+    <header class="banner">
+      <h1 id="banner-title">SALES PERFORMANCE REPORT</h1>
+      <p class="banner-period" id="banner-period"></p>
+      <p class="banner-subtitle" id="banner-subtitle">Denri Africa — Business Intelligence</p>
+      <p class="banner-compared" id="banner-compared"></p>
+    </header>
+
+    <div class="filter-bar" id="filter-bar" role="group" aria-label="Report period filters">
+      <div class="filter-period-group" role="group" aria-label="Period type">
+        <button type="button" class="filter-btn" data-period="day">Day</button>
+        <button type="button" class="filter-btn" data-period="week">Week</button>
+        <button type="button" class="filter-btn" data-period="month">Month</button>
+      </div>
+      <div class="filter-nav">
+        <button type="button" class="filter-nav-btn" id="filter-prev" title="Previous period" aria-label="Previous period">◀</button>
+        <input type="date" id="filter-date" class="filter-date" aria-label="Jump to date">
+        <button type="button" class="filter-nav-btn" id="filter-next" title="Next period" aria-label="Next period">▶</button>
+      </div>
+      <button type="button" class="filter-latest-btn" id="filter-latest">Latest</button>
+      <button type="button" class="filter-refresh-btn" id="filter-refresh" title="Refresh data from Google Sheets">
+        <span class="refresh-icon" id="filter-refresh-icon">⟳</span> Refresh
+      </button>
+    </div>
+
+    <section class="kpi-strip" id="kpi-strip" aria-label="Key performance indicators"></section>
+
+    <section class="callout callout-context" id="context-callout"></section>
+
+    <section class="report-section" id="section-exec-summary">
+      <h2><span class="section-num">1.</span> Executive Summary</h2>
+      <p class="narrative" id="exec-narrative"></p>
+
+      <div class="table-wrap">
+        <table class="comparison-table" id="exec-table">
+          <thead>
+            <tr>
+              <th class="col-metric">Metric</th>
+              <th class="col-value">Current</th>
+              <th class="col-value">Previous</th>
+              <th class="col-change">Change</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+
+      <div class="flags" id="exec-flags"></div>
+
+      <div class="callout callout-meeting" id="exec-meeting-note"></div>
+    </section>
+
+    <section class="report-section" id="section-customer-metrics">
+      <h2><span class="section-num">2.</span> Customer Metrics</h2>
+      <p class="narrative" id="customer-summary"></p>
+
+      <div class="table-wrap">
+        <table class="comparison-table" id="customer-table">
+          <thead>
+            <tr>
+              <th class="col-metric">Metric</th>
+              <th class="col-value">Current</th>
+              <th class="col-value">Previous</th>
+              <th class="col-change">Change</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+
+      <h3><span class="section-num">2.1</span> Purchase Frequency Distribution</h3>
+      <div class="table-wrap">
+        <table class="comparison-table" id="frequency-table">
+          <thead>
+            <tr>
+              <th class="col-metric">Purchase Frequency</th>
+              <th class="col-value">Customer Count</th>
+              <th class="col-value">Percentage</th>
+              <th class="col-read">Read</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+
+      <h3><span class="section-num">2.2</span> Channel Overview</h3>
+      <div class="table-wrap">
+        <table class="comparison-table" id="channel-table">
+          <thead>
+            <tr>
+              <th class="col-metric">Channel</th>
+              <th class="col-value">Orders</th>
+              <th class="col-value">Share</th>
+              <th class="col-value">Avg Spend</th>
+              <th class="col-note">Note</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+
+      <div class="callout callout-meeting" id="customer-meeting-note"></div>
+    </section>
+
+    <section class="report-section" id="section-store-performance">
+      <h2><span class="section-num">3.</span> Store Performance</h2>
+      <p class="narrative" id="store-summary"></p>
+
+      <div class="table-wrap">
+        <table class="comparison-table" id="store-table">
+          <thead>
+            <tr>
+              <th class="col-metric sortable" data-key="shop" data-type="text">Shop</th>
+              <th class="col-value sortable" data-key="current" data-type="number">Current</th>
+              <th class="col-value sortable" data-key="previous" data-type="number">Previous</th>
+              <th class="col-change sortable" data-key="change" data-type="number">Change</th>
+              <th class="col-value sortable" data-key="change_pct" data-type="number">Change %</th>
+              <th class="col-value sortable" data-key="new" data-type="number">New</th>
+              <th class="col-value sortable" data-key="repeat" data-type="number">Repeat</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+
+      <h3><span class="section-num">3.1</span> Channel Mix by Location</h3>
+      <div class="table-wrap">
+        <table class="comparison-table" id="channel-mix-table">
+          <thead>
+            <tr>
+              <th class="col-metric">Shop</th>
+              <th class="col-value">Walk-in</th>
+              <th class="col-value">Online</th>
+              <th class="col-value">Activation</th>
+              <th class="col-value">Total</th>
+              <th class="col-value">Online %</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+
+      <div class="callout callout-meeting" id="store-meeting-note"></div>
+    </section>
+
+    <section class="report-section" id="section-gender-performance">
+      <h2><span class="section-num">4.</span> Gender Performance Analysis</h2>
+      <p class="narrative" id="gender-summary"></p>
+
+      <h3><span class="section-num">4.1</span> Overall Gender Split</h3>
+      <div class="table-wrap">
+        <table class="comparison-table" id="gender-overall-table">
+          <thead>
+            <tr>
+              <th class="col-metric">Gender</th>
+              <th class="col-value">Count</th>
+              <th class="col-value">%</th>
+              <th class="col-change">Change</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+      <p class="ratio-stat" id="gender-ratio"></p>
+
+      <h3><span class="section-num">4.2</span> Gender by Location</h3>
+      <div class="table-wrap">
+        <table class="comparison-table" id="gender-location-table">
+          <thead></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+
+      <div class="viz-row" id="gender-viz-row"></div>
+
+      <div class="callout callout-meeting" id="gender-meeting-note"></div>
+    </section>
+
+    <section class="report-section" id="section-traffic">
+      <h2><span class="section-num">5.</span> Foot &amp; Online Traffic Analysis</h2>
+      <p class="narrative" id="traffic-summary"></p>
+
+      <div class="callout callout-watch" id="traffic-gap-callout" hidden></div>
+
+      <div class="table-wrap">
+        <table class="comparison-table" id="traffic-table">
+          <thead>
+            <tr>
+              <th class="col-metric sortable" data-key="shop">Shop</th>
+              <th class="col-value sortable" data-key="walkin_purchased_raw">Walk-in Purchased</th>
+              <th class="col-value sortable" data-key="walkin_total_raw">Walk-in Total</th>
+              <th class="col-value sortable" data-key="conv_rate_raw">Conv. Rate</th>
+              <th class="col-value sortable" data-key="online_raw">Online</th>
+              <th class="col-value sortable" data-key="activation_raw">Activation</th>
+              <th class="col-value sortable" data-key="total_customers_raw">Total Customers</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+
+      <div class="callout callout-meeting" id="traffic-meeting-note"></div>
+    </section>
+
+    <section class="report-section" id="section-revenue">
+      <h2><span class="section-num">6.</span> Revenue Analysis</h2>
+      <p class="narrative" id="revenue-summary"></p>
+
+      <div class="kpi-strip" id="revenue-kpi-cards" aria-label="Revenue KPIs"></div>
+
+      <div class="table-wrap">
+        <table class="comparison-table" id="revenue-table">
+          <thead>
+            <tr>
+              <th class="col-metric">Metric</th>
+              <th class="col-value">Current</th>
+              <th class="col-value">Previous</th>
+              <th class="col-change">Change</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+
+      <h3><span class="section-num">6.1</span> Revenue Bridge</h3>
+      <div class="table-wrap">
+        <table class="comparison-table" id="revenue-bridge-table">
+          <thead>
+            <tr>
+              <th class="col-metric">Period</th>
+              <th class="col-value">Revenue</th>
+              <th class="col-value">Customers</th>
+              <th class="col-value">Avg Spend</th>
+              <th class="col-change">Trend</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+
+      <div class="callout callout-meeting" id="revenue-meeting-note"></div>
+    </section>
+
+    <section class="report-section" id="section-data-quality">
+      <h2><span class="section-num">7.</span> Data Quality (KYC)</h2>
+      <p class="narrative" id="dq-summary"></p>
+
+      <div class="table-wrap">
+        <table class="comparison-table" id="dq-table">
+          <thead>
+            <tr>
+              <th class="col-metric">Metric</th>
+              <th class="col-value">Current</th>
+              <th class="col-value">Current %</th>
+              <th class="col-value">Previous</th>
+              <th class="col-value">Previous %</th>
+              <th class="col-change">Change</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+
+      <h3><span class="section-num">7.1</span> Store Numbers Used by Location</h3>
+      <div class="table-wrap">
+        <table class="comparison-table" id="dq-store-number-table">
+          <thead>
+            <tr>
+              <th class="col-metric">Shop</th>
+              <th class="col-value">Unique Numbers</th>
+              <th class="col-value">Occurrences</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+      <p class="narrative" id="dq-store-number-empty" hidden>No instances this period — every record used a distinct customer number.</p>
+
+      <div class="callout callout-context" id="dq-score-note"></div>
+
+      <div class="callout callout-meeting" id="dq-meeting-note"></div>
+    </section>
+
+    <section class="report-section" id="section-feedback">
+      <h2><span class="section-num">8.</span> Customer Feedback</h2>
+      <p class="narrative" id="feedback-summary"></p>
+
+      <div class="table-wrap">
+        <table class="comparison-table" id="feedback-table">
+          <thead>
+            <tr>
+              <th class="col-metric">Metric</th>
+              <th class="col-value">Current</th>
+              <th class="col-value">Previous</th>
+              <th class="col-value">Change %</th>
+              <th class="col-status">Status</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+
+      <div class="callout callout-context" id="feedback-target-note" hidden></div>
+
+      <h3><span class="section-num">8.1</span> Store Breakdown</h3>
+      <div class="table-wrap">
+        <table class="comparison-table" id="feedback-store-table">
+          <thead>
+            <tr>
+              <th class="col-metric">Shop</th>
+              <th class="col-value">Current</th>
+              <th class="col-value">Previous</th>
+              <th class="col-change">Change</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+
+      <div class="callout callout-meeting" id="feedback-meeting-note"></div>
+    </section>
+
+    <section class="report-section" id="section-priorities">
+      <h2><span class="section-num">9.</span> <span id="priorities-title">Summary &amp; Key Notes</span></h2>
+      <p class="narrative">Department-level notes generated from this period's performance across every section above.</p>
+
+      <div class="dept-grid" id="priorities-grid"></div>
+    </section>
+  </main>
+</div>
+
+<script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
