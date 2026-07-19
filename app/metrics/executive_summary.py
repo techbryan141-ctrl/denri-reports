@@ -252,6 +252,7 @@ def build_report(
     df: pd.DataFrame, period_type: str, ref_date=None,
     footfall_df: pd.DataFrame = None, footfall_gaps: list = None,
     feedback_daily_df: pd.DataFrame = None, feedback_by_shop_df: pd.DataFrame = None,
+    feedback_links_df: pd.DataFrame = None,
 ) -> dict:
     if footfall_df is None:
         footfall_df = pd.DataFrame(columns=["Shop", "Date", "Walkins Purchased", "Walkins Not Purchased", "Total"])
@@ -259,6 +260,8 @@ def build_report(
         feedback_daily_df = pd.DataFrame(columns=["Date", "Responses", "Professionalism", "Overall"])
     if feedback_by_shop_df is None:
         feedback_by_shop_df = pd.DataFrame(columns=["Date", "Shop", "Responses"])
+    if feedback_links_df is None:
+        feedback_links_df = pd.DataFrame(columns=["Shop", "Links Sent", "Online", "Walk-Ins"])
 
     max_date = df["Date"].max().date()
     min_date = df["Date"].min().date()
@@ -293,7 +296,7 @@ def build_report(
     traffic_section = traffic.build_section(footfall_df, footfall_gaps or [], cur_df, period)
     revenue_section = revenue.build_section(df, cur_kpis, prev_kpis, period_type, period)
     data_quality_section = data_quality.build_section(cur_df, prev_df, period)
-    feedback_section = feedback.build_section(feedback_daily_df, feedback_by_shop_df, period_type, period)
+    feedback_section = feedback.build_section(feedback_daily_df, feedback_by_shop_df, feedback_links_df, period_type, period)
 
     return {
         "meta": meta,

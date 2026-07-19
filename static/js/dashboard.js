@@ -624,7 +624,10 @@ function renderFeedback(feedback) {
   const targetEl = document.getElementById("feedback-target-note");
   if (feedback.target) {
     targetEl.hidden = false;
-    targetEl.innerHTML = `<strong>🎯 TARGET</strong><br>${feedback.target.note}`;
+    const badge = feedback.target.status
+      ? `<span class="status-badge tone-${feedback.target.status_tone}">${feedback.target.status}</span> `
+      : "";
+    targetEl.innerHTML = `<strong>🎯 TARGET</strong> ${badge}<br>${feedback.target.note}`;
   } else {
     targetEl.hidden = true;
   }
@@ -637,6 +640,26 @@ function renderFeedback(feedback) {
       <td class="col-change ${toneClass(row.dir)}">${row.change}</td>
     </tr>
   `).join("");
+
+  const linksTable = document.getElementById("feedback-links-table");
+  if (feedback.feedback_links && feedback.feedback_links.length > 0) {
+    attachSortableTable(
+      linksTable,
+      () => feedback.feedback_links,
+      row => `
+        <tr class="${row.shop === "TOTAL" ? "row-total" : ""}">
+          <td class="col-metric">${row.shop}</td>
+          <td class="col-value">${row.links_sent}</td>
+          <td class="col-value">${row.online}</td>
+          <td class="col-value">${row.achv_pct}</td>
+          <td class="col-value">${row.gap}</td>
+          <td class="col-status"><span class="status-badge tone-${row.status_tone}">${row.status}</span></td>
+          <td class="col-value">${row.walkins}</td>
+        </tr>
+      `,
+      { defaultKey: "sent_raw", isTotalRow: row => row.shop === "TOTAL" }
+    );
+  }
 
   renderMeetingNote("feedback-meeting-note", feedback.meeting_note);
 }

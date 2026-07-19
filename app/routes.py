@@ -2,7 +2,7 @@ from datetime import datetime
 
 from flask import Blueprint, jsonify, render_template, request
 
-from app.data.feedback import load_feedback_by_shop, load_feedback_daily
+from app.data.feedback import load_feedback_by_shop, load_feedback_daily, load_feedback_links
 from app.data.footfall import get_footfall_gaps, load_footfall_df
 from app.data.shops import load_shops_df
 from app.metrics.executive_summary import build_report
@@ -35,9 +35,10 @@ def api_report():
     footfall_gaps = get_footfall_gaps()
     feedback_daily_df = load_feedback_daily()
     feedback_by_shop_df = load_feedback_by_shop()
+    feedback_links_df = load_feedback_links()
     report = build_report(
         df, period_type, ref_date, footfall_df, footfall_gaps,
-        feedback_daily_df, feedback_by_shop_df,
+        feedback_daily_df, feedback_by_shop_df, feedback_links_df,
     )
     return jsonify(report)
 

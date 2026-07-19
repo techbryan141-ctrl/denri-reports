@@ -68,8 +68,16 @@ def build_marketing_notes(evaluated: list, gender_section: dict, feedback_sectio
         priority = "HIGH" if overall_exp["status_tone"] == "critical" else "MEDIUM"
         items.append(_item(priority, f"Overall Experience score is {overall_exp['status']} ({overall_exp['current']}/5) - brand-perception risk worth a marketing review."))
 
-    if feedback_section.get("target"):
-        items.append(_item("MEDIUM", feedback_section["target"]["note"]))
+    target = feedback_section.get("target")
+    if target and target["status_tone"] in ("warning", "critical"):
+        priority = "CRITICAL" if target["status_tone"] == "critical" else "HIGH"
+        items.append(_item(priority, target["note"]))
+
+    links = [r for r in feedback_section.get("feedback_links", []) if r["shop"] != "TOTAL" and r["sent_raw"] >= 10]
+    if links:
+        worst_link = min(links, key=lambda r: r["achv_pct_raw"])
+        if worst_link["achv_pct_raw"] < 50:
+            items.append(_item("HIGH", f"{worst_link['shop']}'s online feedback link conversion is {worst_link['achv_pct']} ({worst_link['online']} of {worst_link['links_sent']} sent) - lowest of any shop with meaningful volume."))
 
     items = _sort_items(items)
     return {"summary": _summarize(items, "Marketing"), "items": items}

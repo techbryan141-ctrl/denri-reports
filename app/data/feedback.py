@@ -13,6 +13,12 @@ Structure (verified directly against the live sheet):
     is recomputed from the 19 location columns for consistency with the rest of
     the app, and weekly/monthly rollups are computed by period filtering, not
     read from the sheet's own boundaries.
+  - A separate "FEEDBACK TARGETS" table lives off to the right at AD4:AG26:
+    header 'SHOP | Links Sent | Online | Walk-Ins' at row 6, one row per shop,
+    a 'Totals' row closing it out. This is a single undated snapshot (no daily
+    breakdown) that the user maintains manually - it's the 'sent' denominator
+    needed to compute an actual online feedback response rate, which nothing
+    else in this sheet provides.
 """
 import threading
 import time
@@ -29,8 +35,13 @@ _SHOP_COLS = slice(2, 21)  # Starmall .. Website
 _PROFESSIONALISM_COL = 23
 _OVERALL_COL = 24
 
+_LINKS_SHOP_COL = 29  # column AD
+_LINKS_SENT_COL = 30  # column AE
+_LINKS_ONLINE_COL = 31  # column AF
+_LINKS_WALKIN_COL = 32  # column AG
+
 _lock = threading.Lock()
-_cache = {"fetched_at": 0.0, "by_shop": None, "daily": None}
+_cache = {"fetched_at": 0.0, "by_shop": None, "daily": None, "links": None}
 
 
 def _to_float(v: str) -> float:
@@ -75,6 +86,29 @@ def _parse_feedback(values: list):
     return by_shop_df.reset_index(drop=True), daily_df.reset_index(drop=True)
 
 
+def _parse_feedback_links(values: list) -> pd.DataFrame:
+    header_idx = None
+    for i, row in enumerate(values):
+        if len(row) > _LINKS_SHOP_COL and row[_LINKS_SHOP_COL].strip().upper() == "SHOP":
+            header_idx = i
+            break
+
+    if header_idx is None:
+        return pd.DataFrame(columns=["Shop", "Links Sent", "Online", "Walk-Ins"])
+
+    records = []
+    for row in values[header_idx + 1:]:
+        shop = row[_LINKS_SHOP_COL].strip() if len(row) > _LINKS_SHOP_COL else ""
+        if not shop or shop.upper() == "TOTALS":
+            break
+        sent = _to_float(row[_LINKS_SENT_COL]) if len(row) > _LINKS_SENT_COL else 0.0
+        online = _to_float(row[_LINKS_ONLINE_COL]) if len(row) > _LINKS_ONLINE_COL else 0.0
+        walkins = _to_float(row[_LINKS_WALKIN_COL]) if len(row) > _LINKS_WALKIN_COL else 0.0
+        records.append({"Shop": shop, "Links Sent": sent, "Online": online, "Walk-Ins": walkins})
+
+    return pd.DataFrame(records, columns=["Shop", "Links Sent", "Online", "Walk-Ins"])
+
+
 def _load(force_refresh: bool):
     with _lock:
         if (
@@ -82,24 +116,31 @@ def _load(force_refresh: bool):
             and _cache["by_shop"] is not None
             and time.time() - _cache["fetched_at"] < Config.SHEET_CACHE_TTL_SECONDS
         ):
-            return _cache["by_shop"], _cache["daily"]
+            return _cache["by_shop"], _cache["daily"], _cache["links"]
 
     values = get_worksheet_values(Config.SHEET_FEEDBACK, force_refresh=force_refresh)
     by_shop_df, daily_df = _parse_feedback(values)
+    links_df = _parse_feedback_links(values)
 
     with _lock:
         _cache["by_shop"] = by_shop_df
         _cache["daily"] = daily_df
+        _cache["links"] = links_df
         _cache["fetched_at"] = time.time()
 
-    return by_shop_df, daily_df
+    return by_shop_df, daily_df, links_df
 
 
 def load_feedback_by_shop(force_refresh: bool = False) -> pd.DataFrame:
-    by_shop, _ = _load(force_refresh)
+    by_shop, _, _ = _load(force_refresh)
     return by_shop
 
 
 def load_feedback_daily(force_refresh: bool = False) -> pd.DataFrame:
-    _, daily = _load(force_refresh)
+    _, daily, _ = _load(force_refresh)
     return daily
+
+
+def load_feedback_links(force_refresh: bool = False) -> pd.DataFrame:
+    _, _, links = _load(force_refresh)
+    return links
