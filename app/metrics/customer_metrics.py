@@ -12,14 +12,17 @@ _FREQUENCY_READS = {
 }
 
 
-def _visit_days_per_customer(df: pd.DataFrame) -> pd.Series:
-    """Distinct trading days per valid-phone customer in the period — the same
-    definition used for New/Repeat elsewhere, so a customer counted 'Repeat'
-    in the KPI strip lands in a 2+ band here too."""
+def _products_per_customer(df: pd.DataFrame) -> pd.Series:
+    """Total product units (summed Quantity, not transaction count or visit
+    days) per unique valid-phone customer in the period - a customer who buys
+    3 units in one transaction bought '3 products', same as one who bought 1
+    unit on 3 separate visits. Quantity is usually 1 per line but not always
+    (bulk/wholesale rows exist), so summing is the correct 'how many products
+    did they buy' answer, not counting rows."""
     valid = df[df["Phone Valid"]]
     if valid.empty:
-        return pd.Series(dtype=int)
-    return valid.groupby("Phone")["Date"].nunique()
+        return pd.Series(dtype=float)
+    return valid.groupby("Phone")["Quantity"].sum()
 
 
 def build_comparison_rows(cur_kpis: dict, prev_kpis: dict) -> list:
@@ -55,14 +58,14 @@ def build_comparison_rows(cur_kpis: dict, prev_kpis: dict) -> list:
 
 
 def build_frequency_distribution(cur_df: pd.DataFrame) -> list:
-    visit_days = _visit_days_per_customer(cur_df)
-    total = len(visit_days)
+    products = _products_per_customer(cur_df)
+    total = len(products)
 
     bands = [
-        ("1 Purchase", visit_days == 1),
-        ("2 Purchases", visit_days == 2),
-        ("3-5 Purchases", (visit_days >= 3) & (visit_days <= 5)),
-        ("6+ Purchases", visit_days >= 6),
+        ("1 Purchase", products == 1),
+        ("2 Purchases", products == 2),
+        ("3-5 Purchases", (products >= 3) & (products <= 5)),
+        ("6+ Purchases", products >= 6),
     ]
 
     rows = []

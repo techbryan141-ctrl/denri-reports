@@ -258,6 +258,27 @@ body {
   to { transform: rotate(360deg); }
 }
 
+.filter-export {
+  display: inline-flex;
+  gap: 6px;
+}
+
+.filter-export-btn {
+  font-family: var(--font);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--good);
+  background: transparent;
+  border: 1px solid var(--good);
+  border-radius: 6px;
+  padding: 6px 10px;
+  cursor: pointer;
+}
+
+.filter-export-btn:hover {
+  background: color-mix(in srgb, var(--good) 12%, var(--surface-1));
+}
+
 /* KPI strip */
 
 .kpi-strip {

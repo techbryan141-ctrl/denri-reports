@@ -754,6 +754,13 @@ function initFilterBar(meta) {
   document.getElementById("filter-latest").onclick = () => setFilters({ period: meta.period_type, date: null });
 
   document.getElementById("filter-refresh").onclick = handleRefreshClick;
+
+  document.getElementById("export-docx").onclick = () => {
+    window.location.href = `/api/export/docx?period=${meta.period_type}&date=${meta.start}`;
+  };
+  document.getElementById("export-xlsx").onclick = () => {
+    window.location.href = `/api/export/xlsx?period=${meta.period_type}&date=${meta.start}`;
+  };
 }
 
 async function handleRefreshClick() {
